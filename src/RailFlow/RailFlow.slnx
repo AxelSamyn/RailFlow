@@ -1,0 +1,14 @@
+<Solution>
+  <Project Path="RailFlow.TrainService.Api/RailFlow.TrainService.Api.csproj">
+    <BuildDependency Project="RailFlow.TrainService.Application/RailFlow.TrainService.Application.csproj" />
+    <BuildDependency Project="RailFlow.TrainService.Infrastructure/RailFlow.TrainService.Infrastructure.csproj" />
+  </Project>
+  <Project Path="RailFlow.TrainService.Application/RailFlow.TrainService.Application.csproj">
+    <BuildDependency Project="RailFlow.TrainService.Domain/RailFlow.TrainService.Domain.csproj" />
+  </Project>
+  <Project Path="RailFlow.TrainService.Domain/RailFlow.TrainService.Domain.csproj" />
+  <Project Path="RailFlow.TrainService.Infrastructure/RailFlow.TrainService.Infrastructure.csproj">
+    <BuildDependency Project="RailFlow.TrainService.Application/RailFlow.TrainService.Application.csproj" />
+    <BuildDependency Project="RailFlow.TrainService.Domain/RailFlow.TrainService.Domain.csproj" />
+  </Project>
+</Solution>
