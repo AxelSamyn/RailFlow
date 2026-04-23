@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="RailFlow.NotificationService/RailFlow.NotificationService.csproj" Id="20a97bff-1fde-4052-8eed-fbc0fd0bc315" />
   <Project Path="RailFlow.TrainService.Api/RailFlow.TrainService.Api.csproj">
     <BuildDependency Project="RailFlow.TrainService.Application/RailFlow.TrainService.Application.csproj" />
     <BuildDependency Project="RailFlow.TrainService.Infrastructure/RailFlow.TrainService.Infrastructure.csproj" />
