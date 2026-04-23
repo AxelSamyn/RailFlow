@@ -9,7 +9,7 @@ public static class ApplicationServices
 {
     public static IServiceCollection AddApplicationServices( this IServiceCollection services )
     {
-        _ = services.AddScoped<IDomainEventDispatcher, MediatoRDomainEventDispatcher>( );
+        _ = services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>( );
         return services;
     }
 }

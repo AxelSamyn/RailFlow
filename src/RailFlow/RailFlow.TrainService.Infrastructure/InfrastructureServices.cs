@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using RailFlow.TrainService.Application.Common.Interfaces;
 using RailFlow.TrainService.Domain.Trains;
+using RailFlow.TrainService.Infrastructure.Messaging;
 using RailFlow.TrainService.Infrastructure.Persistence;
 using RailFlow.TrainService.Infrastructure.Persistence.Repositories;
 
@@ -18,6 +19,8 @@ public static class InfrastructureServices
 
         _ = services.AddScoped<ITrainDbContext>( provider => provider.GetRequiredService<TrainDbContext>( ) );
         _ = services.AddScoped<ITrainRepository, TrainRepository>( );
+
+        _ = services.AddScoped<IEventBus, RabbitMqEventBus>( );
 
         return services;
     }

@@ -21,16 +21,22 @@ public class TrainDbContext : DbContext, ITrainDbContext
 
     public override async Task<int> SaveChangesAsync( CancellationToken cancellationToken = default )
     {
-        IEnumerable<EntityEntry<BaseEntity>> entities =
+        List<EntityEntry<BaseEntity>> entities =
             ChangeTracker
-                .Entries<BaseEntity>( );
+                .Entries<BaseEntity>( )
+                .ToList();
+
+        List<IDomainEvent> domainEvents =
+            ChangeTracker
+                .Entries<BaseEntity>( )
+                .Where(e =>
+                    e.State is   EntityState.Added   or
+                      EntityState.Modified  )
+                .SelectMany( x => x.Entity.DomainEvents )
+                .ToList( );
 
         //Save changes to the database first
         int result = await base.SaveChangesAsync( cancellationToken );
-
-        var domainEvents = entities
-            .SelectMany( x => x.Entity.DomainEvents )
-            .ToList( );
 
         //dispatch domain events after saving changes to the database
         await this._dispatcher.DispatchAsync( domainEvents, cancellationToken );
