@@ -8,6 +8,9 @@ using RailFlow.TrainService.Infrastructure;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
+builder.Logging.ClearProviders( );
+builder.Logging.AddConsole( );
+
 builder.Services.AddControllers( );
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi( );

@@ -13,6 +13,8 @@ internal class RabbitMqEventBus : IEventBus, IAsyncDisposable
     private readonly IConnection _connection;
     private readonly IChannel _channel;
 
+    private const string ExchangeName = "railflow.events";
+
     public RabbitMqEventBus( )
     {
         ConnectionFactory factory = new( )
@@ -29,7 +31,8 @@ internal class RabbitMqEventBus : IEventBus, IAsyncDisposable
         _ = domainEvent.GetType( ).Name;
 
         await this._channel.ExchangeDeclareAsync(
-            exchange: "railflow.events",
+            exchange: ExchangeName,
+            durable: true,
             type: ExchangeType.Fanout,
             cancellationToken: cancellationToken
         );
@@ -38,7 +41,7 @@ internal class RabbitMqEventBus : IEventBus, IAsyncDisposable
         byte[ ] body = Encoding.UTF8.GetBytes( message );
 
         await this._channel.BasicPublishAsync(
-            exchange: "railflow.events",
+            exchange: ExchangeName,
             routingKey: string.Empty,
             mandatory: false,
             body: body,
