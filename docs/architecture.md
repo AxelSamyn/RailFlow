@@ -1,376 +1,202 @@
-\# RailFlow — Architecture Overview
+# RailFlow — Architecture Overview
 
-
-
-\## 🎯 Objective
-
-
+## 🎯 Objective
 
 RailFlow is a distributed system demo designed to showcase modern backend architecture skills using .NET, including:
 
-
-
-\* Clean Architecture
-
-\* CQRS (Command Query Responsibility Segregation)
-
-\* Vertical Slice Architecture
-
-\* Event-driven communication
-
-\* Distributed system design
-
-\* Observability and resilience patterns
-
-
+- Clean Architecture
+- CQRS (Command Query Responsibility Segregation)
+- Vertical Slice Architecture
+- Event-driven communication
+- Distributed system design
+- Observability and resilience patterns
 
 The goal is to demonstrate technical expertise in building scalable, maintainable, and cloud-ready systems.
 
+---
 
-
-\---
-
-
-
-\## 🚆 Domain Overview
-
-
+## 🚆 Domain Overview
 
 RailFlow simulates a railway logistics system where trains transport cargo between stations.
 
+### Core Concepts
 
+- **Train**: Represents a transport unit
+- **Station**: A location where events occur
+- **Cargo**: Goods transported by trains
+- **Segment**: A portion of a journey
+- **Incident**: Unexpected events (delays, failures)
 
-\### Core Concepts
+---
 
-
-
-\* \*\*Train\*\*: Represents a transport unit
-
-\* \*\*Station\*\*: A location where events occur
-
-\* \*\*Cargo\*\*: Goods transported by trains
-
-\* \*\*Segment\*\*: A portion of a journey
-
-\* \*\*Incident\*\*: Unexpected events (delays, failures)
-
-
-
-\---
-
-
-
-\## 🧩 System Architecture
-
-
+## 🧩 System Architecture
 
 The system is composed of multiple services:
 
+### 1. Train Service
 
+- Source of truth for train lifecycle
+- Handles commands (CreateTrain, UpdateStatus)
+- Emits domain events
+- Publishes integration events via RabbitMQ
 
-\### 1. Train Service
+### 2. Notification Service
 
+- RabbitMQ consumer (Worker Service)
+- Subscribes to domain/integration events
+- Processes messages asynchronously
+- Implements retry, reconnection, and message acknowledgement
 
+### 3. Tracking Service (Planned)
 
-\* Source of truth for train lifecycle
+- Builds read models
+- Consumes events from Train Service
+- Provides query endpoints
 
-\* Handles commands (CreateTrain, UpdateStatus)
+### 4. Incident Service (Planned)
 
-\* Emits domain events
+- Handles anomalies (delays, failures)
+- Reacts to system events
+- Emits incident-related events
 
+### 5. Web Application (Planned)
 
+- Blazor Web App (.NET 8+)
+- Displays system state
+- Sends commands via API
 
-\### 2. Tracking Service
+---
 
+## 🧱 Architectural Patterns
 
+### Clean Architecture
 
-\* Builds read models
+- Separation of concerns
+- Domain-centric design
+- Infrastructure isolated from business logic
 
-\* Consumes events from Train Service
+### CQRS
 
-\* Provides query endpoints
+- Commands and Queries are separated
+- Write model optimized for business logic
+- Read model optimized for queries
 
+### Vertical Slice Architecture
 
+- Features organized by use case
+- Each slice contains its own logic, validation, and handler
 
-\### 3. Incident Service
+---
 
+## 📡 Communication
 
+### In-process (Current)
 
-\* Handles anomalies (delays, failures)
+- Domain events via MediatR
 
-\* Reacts to system events
+### Asynchronous Messaging
 
-\* Emits incident-related events
+- RabbitMQ as message broker
+- Fanout exchanges for event broadcasting
+- Consumers implemented as background services
+- Manual message acknowledgement (ACK/NACK)
+- Retry strategy with exponential backoff
+- Dead-letter queue support (planned)
 
+---
 
+## 🗄️ Data Storage
 
-\### 4. Web Application
+- SQL Server (per service)
+- Each service owns its database
+- No shared database between services
 
+---
 
-
-\* Blazor Web App (.NET 8+)
-
-\* Displays system state
-
-\* Sends commands via API
-
-
-
-\---
-
-
-
-\## 🧱 Architectural Patterns
-
-
-
-\### Clean Architecture
-
-
-
-\* Separation of concerns
-
-\* Domain-centric design
-
-\* Infrastructure isolated
-
-
-
-\### CQRS
-
-
-
-\* Commands and Queries are separated
-
-\* Write model optimized for business logic
-
-\* Read model optimized for queries
-
-
-
-\### Vertical Slice Architecture
-
-
-
-\* Features organized by use case
-
-\* Each slice contains its own logic, validation, and handler
-
-
-
-\---
-
-
-
-\## 📡 Communication
-
-
-
-\### Phase 1 (POC)
-
-
-
-\* In-process domain events
-
-
-
-\### Phase 2
-
-
-
-\* Asynchronous messaging using RabbitMQ
-
-\* Event-driven communication between services
-
-
-
-\---
-
-
-
-\## 🗄️ Data Storage
-
-
-
-\* SQL Server (per service)
-
-\* Each service owns its database
-
-\* No shared database between services
-
-
-
-\---
-
-
-
-\## 🐳 Infrastructure (Local Development)
-
-
+## 🐳 Infrastructure (Local Development)
 
 Managed via Docker Compose:
 
+- SQL Server
+- RabbitMQ
+- Notification Service (Worker)
 
+Applications are containerized progressively.
 
-\* SQL Server
+---
 
-\* RabbitMQ
+## 🔁 Resilience
 
+- Infinite retry with exponential backoff (consumer)
+- Graceful reconnection to RabbitMQ
+- Manual message acknowledgement
+- Dead-letter queue strategy (planned)
 
+---
 
-Applications run locally during early stages.
+## 📊 Observability
 
+- Microsoft.Extensions.Logging (structured logging)
+- Container-friendly logging (Docker logs)
+- Correlation IDs (planned)
+- OpenTelemetry (planned)
 
+---
 
-\---
+## 🧪 Testing Strategy
 
+- Unit tests (Domain)
+- Integration tests (API)
+- Event-driven tests (planned)
+- Contract testing (planned)
 
+---
 
-\## 📊 Observability (Planned)
+## 🚀 Deployment Strategy (Planned)
 
+- Dockerized services
+- CI/CD pipeline (GitHub Actions)
+- Azure-ready architecture:
 
+  - Azure Container Apps / AKS
+  - Azure Service Bus (alternative to RabbitMQ)
+  - Azure SQL
 
-\* Logging: Serilog
+---
 
-\* Tracing: OpenTelemetry
+## 🧭 Development Roadmap
 
-\* Metrics: Prometheus / Grafana
+### Phase 1 — Monolith foundation
 
-\* Correlation IDs for distributed tracing
+- Clean Architecture
+- CQRS
+- Basic API
 
+### Phase 2 — Event-driven
 
+- Domain events
+- MediatR handlers
 
-\---
+### Phase 3 — Distributed system
 
+- Service split
+- RabbitMQ integration
+- Consumer implementation
 
+### Phase 4 — Resilience & Observability
 
-\## 🔁 Resilience \& Maintenance (Planned)
+- Retry strategies
+- Logging
+- Monitoring
+- Failure handling
 
+---
 
+## 💡 Key Design Decisions
 
-\* Retry policies (Polly)
+- Start simple, evolve toward distributed architecture
+- Prefer explicit architecture over hidden abstractions
+- Focus on clarity, maintainability, and demonstrability
+- Design for real-world backend scenarios (resilience, async, messaging)
 
-\* Dead-letter queues
-
-\* Event replay capability
-
-\* Read model rebuilding
-
-
-
-\---
-
-
-
-\## 🧪 Testing Strategy
-
-
-
-\* Unit tests (Domain)
-
-\* Integration tests (API)
-
-\* Event-driven tests
-
-\* Contract testing between services
-
-
-
-\---
-
-
-
-\## 🚀 Deployment Strategy (Planned)
-
-
-
-\* Dockerized services
-
-\* CI/CD pipeline (GitHub Actions)
-
-\* Optional Azure deployment:
-
-
-
-&#x20; \* Azure Service Bus
-
-&#x20; \* Azure Container Apps
-
-&#x20; \* Azure SQL
-
-
-
-\---
-
-
-
-\## 🧭 Development Roadmap
-
-
-
-\### Phase 1 — Monolith foundation
-
-
-
-\* Clean Architecture
-
-\* CQRS
-
-\* Basic API
-
-
-
-\### Phase 2 — Event-driven
-
-
-
-\* Domain events
-
-\* Event handlers
-
-
-
-\### Phase 3 — Distributed system
-
-
-
-\* Service split
-
-\* RabbitMQ integration
-
-
-
-\### Phase 4 — Observability \& resilience
-
-
-
-\* Logging
-
-\* Monitoring
-
-\* Failure handling
-
-
-
-\---
-
-
-
-\## 💡 Key Design Decisions
-
-
-
-\* Start simple, evolve to distributed
-
-\* Prefer explicit architecture over abstractions
-
-\* Focus on clarity and maintainability
-
-\* Optimize for demonstration and learning
-
-
-
-\---
-
-
-
+---
