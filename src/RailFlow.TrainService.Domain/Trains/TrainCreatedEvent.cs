@@ -4,5 +4,5 @@ namespace RailFlow.TrainService.Domain.Trains;
 
 public sealed record TrainCreatedEvent( Guid TrainId, string Number ) : IDomainEvent
 {
-    public DateTime OccuredOnUtc { get; } = DateTime.UtcNow;
+    public DateTime OccurredOnUtc { get; } = DateTime.UtcNow;
 }

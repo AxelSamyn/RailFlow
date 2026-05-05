@@ -1,4 +1,4 @@
-﻿namespace RailFlow.NotificationService;
+﻿namespace RailFlow.NotificationService.Configuration;
 
 public class RabbitMqOptions
 {

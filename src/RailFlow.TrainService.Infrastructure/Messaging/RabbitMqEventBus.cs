@@ -3,6 +3,7 @@ using System.Text.Json;
 
 using RabbitMQ.Client;
 
+using RailFlow.Contracts.Events;
 using RailFlow.TrainService.Application.Common.Interfaces;
 using RailFlow.TrainService.Domain.Common;
 
@@ -37,7 +38,15 @@ internal class RabbitMqEventBus : IEventBus, IAsyncDisposable
             cancellationToken: cancellationToken
         );
 
-        string message = JsonSerializer.Serialize(domainEvent);
+        //CorrelationId should originate from request boundary
+        IntegrationEventEnvelope envelope = new(
+            Type: "train.created",
+            Payload: JsonSerializer.Serialize( domainEvent ),
+            CorrelationId: Guid.NewGuid( ).ToString( ),
+            OccurredAtUtc: DateTime.UtcNow
+            );
+
+        string message = JsonSerializer.Serialize(envelope);
         byte[ ] body = Encoding.UTF8.GetBytes( message );
 
         await this._channel.BasicPublishAsync(

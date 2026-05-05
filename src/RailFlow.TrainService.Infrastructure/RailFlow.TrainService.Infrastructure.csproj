@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RailFlow.Contracts\RailFlow.Contracts.csproj" />
     <ProjectReference Include="..\RailFlow.TrainService.Application\RailFlow.TrainService.Application.csproj" />
     <ProjectReference Include="..\RailFlow.TrainService.Domain\RailFlow.TrainService.Domain.csproj" />
   </ItemGroup>
