@@ -9,13 +9,26 @@ HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
 builder.Logging.ClearProviders( );
 builder.Logging.AddConsole( );
 
+builder.Configuration
+    .AddJsonFile( "appsettings.json", optional: false )
+    .AddJsonFile( $"appsettings.{builder.Environment.EnvironmentName}.json", optional: true )
+    .AddEnvironmentVariables( );
+
 builder.Services.AddSingleton<IEventRoute>( new EventRoute<TrainCreatedEvent>( "train.created" ) );
 //builder.Services.AddSingleton<IEventRoute>(new EventRoute<TrainCreatedEvent>("train.created") );
 builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>( );
 
 builder.Services.AddTransient<IIntegrationEventHandler<TrainCreatedEvent>, TrainCreatedHandler>( );
 
-builder.Services.Configure<RabbitMqOptions>( builder.Configuration.GetSection( "RabbitMq" ) );
+builder.Services
+    .AddOptions<RabbitMqOptions>( )
+    .Bind( builder.Configuration.GetSection( "RabbitMq" ) )
+    .ValidateDataAnnotations( )
+    .Validate( o => !string.IsNullOrWhiteSpace( o.Host ), "Host is required" )
+    .Validate( o => o.Port > 0, "Port must be greater than 0" )
+    .Validate( o => !string.IsNullOrWhiteSpace( o.User ), "User is required" )
+    .Validate( o => !string.IsNullOrWhiteSpace( o.Password ), "Password is required" )
+    .ValidateOnStart( );
 builder.Services.AddHostedService<RabbitMqConsumer>( );
 
 IHost host = builder.Build();
