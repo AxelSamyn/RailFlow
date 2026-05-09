@@ -1,4 +1,5 @@
 ﻿using RailFlow.TrainService.Domain.Common;
+using RailFlow.TrainService.Domain.Trains.Events;
 
 namespace RailFlow.TrainService.Domain.Trains;
 
@@ -14,6 +15,6 @@ public sealed class Train : BaseEntity
         Id = Guid.NewGuid( );
         Number = number;
 
-        AddDomainEvent( new TrainCreatedEvent( Id, Number ) );
+        AddDomainEvent( new TrainCreatedDomainEvent( Id, Number ) );
     }
 }

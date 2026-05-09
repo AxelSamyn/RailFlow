@@ -6,11 +6,11 @@ using RailFlow.TrainService.Application.Common.Interfaces;
 
 namespace RailFlow.TrainService.Application.Features.Trains.GetTrainById;
 
-public class GetTrainByIdHandler : IRequestHandler<GetTrainByIdQuery, TrainDto?>
+public class GetTrainByIdQueryHandler : IRequestHandler<GetTrainByIdQuery, TrainDto?>
 {
     private readonly ITrainDbContext _context;
 
-    public GetTrainByIdHandler( ITrainDbContext context )
+    public GetTrainByIdQueryHandler( ITrainDbContext context )
     {
         this._context = context;
     }

@@ -3,9 +3,9 @@ using System.Text.Json;
 
 using RabbitMQ.Client;
 
+using RailFlow.Contracts.Abstractions.Events;
 using RailFlow.Contracts.Events;
 using RailFlow.TrainService.Application.Common.Interfaces;
-using RailFlow.TrainService.Domain.Common;
 
 namespace RailFlow.TrainService.Infrastructure.Messaging;
 
@@ -27,10 +27,9 @@ internal class RabbitMqEventBus : IEventBus, IAsyncDisposable
         this._channel = this._connection.CreateChannelAsync( ).GetAwaiter( ).GetResult( );
     }
 
-    public async Task PublishAsync( IDomainEvent domainEvent, CancellationToken cancellationToken )
+    public async Task PublishAsync<T>( T integrationEvent, CancellationToken cancellationToken )
+        where T : IIntegrationEvent
     {
-        _ = domainEvent.GetType( ).Name;
-
         await this._channel.ExchangeDeclareAsync(
             exchange: ExchangeName,
             durable: true,
@@ -40,8 +39,8 @@ internal class RabbitMqEventBus : IEventBus, IAsyncDisposable
 
         //CorrelationId should originate from request boundary
         IntegrationEventEnvelope envelope = new(
-            Type: "train.created",
-            Payload: JsonSerializer.Serialize( domainEvent ),
+            Type: T.EventType,
+            Payload: JsonSerializer.Serialize( integrationEvent ),
             CorrelationId: Guid.NewGuid( ).ToString( ),
             OccurredAtUtc: DateTime.UtcNow
             );

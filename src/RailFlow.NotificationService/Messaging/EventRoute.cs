@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 
+using RailFlow.Contracts.Abstractions.Events;
 using RailFlow.NotificationService.Abstractions.Handlers;
 using RailFlow.NotificationService.Abstractions.Messaging;
 using RailFlow.NotificationService.Configuration;
@@ -7,13 +8,9 @@ using RailFlow.NotificationService.Configuration;
 namespace RailFlow.NotificationService.Messaging;
 
 public sealed class EventRoute<T> : IEventRoute
+    where T : IIntegrationEvent
 {
-    public string EventType { get; }
-
-    public EventRoute( string eventType )
-    {
-        EventType = eventType;
-    }
+    public string EventType => T.EventType;
 
     public async Task HandleAsync( string payload, IServiceProvider serviceProvider, CancellationToken cancellationToken )
     {

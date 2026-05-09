@@ -9,7 +9,11 @@ public static class ApplicationServices
 {
     public static IServiceCollection AddApplicationServices( this IServiceCollection services )
     {
+        _ = services.AddMediatR( cfg =>
+            cfg.RegisterServicesFromAssembly(
+                typeof( ApplicationAssemblyMarker ).Assembly ) );
         _ = services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>( );
+
         return services;
     }
 }

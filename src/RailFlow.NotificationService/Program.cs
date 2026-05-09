@@ -14,11 +14,11 @@ builder.Configuration
     .AddJsonFile( $"appsettings.{builder.Environment.EnvironmentName}.json", optional: true )
     .AddEnvironmentVariables( );
 
-builder.Services.AddSingleton<IEventRoute>( new EventRoute<TrainCreatedEvent>( "train.created" ) );
-//builder.Services.AddSingleton<IEventRoute>(new EventRoute<TrainCreatedEvent>("train.created") );
+builder.Services.AddSingleton<IEventRoute>( new EventRoute<TrainCreatedIntegrationEvent>( ) );
+//builder.Services.AddSingleton<IEventRoute>(new EventRoute<TrainCreatedEvent>() );
 builder.Services.AddSingleton<IEventDispatcher, EventDispatcher>( );
 
-builder.Services.AddTransient<IIntegrationEventHandler<TrainCreatedEvent>, TrainCreatedHandler>( );
+builder.Services.AddTransient<IIntegrationEventHandler<TrainCreatedIntegrationEvent>, TrainCreatedHandler>( );
 
 builder.Services
     .AddOptions<RabbitMqOptions>( )

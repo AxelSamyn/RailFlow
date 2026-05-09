@@ -3,14 +3,14 @@ using RailFlow.NotificationService.Abstractions.Handlers;
 
 namespace RailFlow.NotificationService.Handlers;
 
-public sealed class TrainCreatedHandler : IIntegrationEventHandler<TrainCreatedEvent>
+public sealed class TrainCreatedHandler : IIntegrationEventHandler<TrainCreatedIntegrationEvent>
 {
     private readonly ILogger<TrainCreatedHandler> _logger;
     public TrainCreatedHandler( ILogger<TrainCreatedHandler> logger )
     {
         this._logger = logger;
     }
-    public Task HandleAsync( TrainCreatedEvent @event, CancellationToken cancellationToken )
+    public Task HandleAsync( TrainCreatedIntegrationEvent @event, CancellationToken cancellationToken )
     {
         this._logger.LogInformation(
             "Received TrainCreatedEvent: {TrainId} - {Number}",

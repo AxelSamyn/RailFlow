@@ -6,11 +6,11 @@ using RailFlow.TrainService.Domain.Trains;
 
 namespace RailFlow.TrainService.Application.Features.Trains.CreateTrain;
 
-public class CreateTrainHandler : IRequestHandler<CreateTrainCommand, Guid>
+public class CreateTrainCommandHandler : IRequestHandler<CreateTrainCommand, Guid>
 {
     private readonly ITrainRepository _trainRepository;
-    private readonly ILogger<CreateTrainHandler> _logger;
-    public CreateTrainHandler( ITrainRepository trainRepository, ILogger<CreateTrainHandler> logger )
+    private readonly ILogger<CreateTrainCommandHandler> _logger;
+    public CreateTrainCommandHandler( ITrainRepository trainRepository, ILogger<CreateTrainCommandHandler> logger )
     {
         this._trainRepository = trainRepository;
         this._logger = logger;
@@ -21,8 +21,6 @@ public class CreateTrainHandler : IRequestHandler<CreateTrainCommand, Guid>
 
         Train train = new(request.Number);
         await this._trainRepository.AddAsync( train );
-
-        train.ClearDomainEvents( );
         return train.Id;
     }
 }

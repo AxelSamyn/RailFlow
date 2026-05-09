@@ -2,6 +2,7 @@
 
 using RailFlow.Contracts.Events;
 using RailFlow.NotificationService.Abstractions.Messaging;
+using RailFlow.NotificationService.Messaging.Exceptions;
 
 namespace RailFlow.NotificationService.Messaging;
 
@@ -27,8 +28,7 @@ public sealed class EventDispatcher : IEventDispatcher
         // This would allow for more flexible and scalable event handling, especially as the number of event types and handlers grows.
         if ( !this._routes.TryGetValue( envelope.Type, out IEventRoute? route ) )
         {
-            // TODO: DLQ
-            return;
+            throw new NonRetryableException( $"No route found for event type '{envelope.Type}'." );
         }
 
         await route.HandleAsync( envelope.Payload, this._serviceProvider, ct );

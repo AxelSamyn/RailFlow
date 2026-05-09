@@ -10,6 +10,7 @@ using RailFlow.Contracts.Events;
 using RailFlow.NotificationService.Abstractions.Messaging;
 using RailFlow.NotificationService.Common.Logging;
 using RailFlow.NotificationService.Configuration;
+using RailFlow.NotificationService.Messaging.Exceptions;
 
 namespace RailFlow.NotificationService.Messaging;
 
@@ -25,6 +26,7 @@ public class RabbitMqConsumer : BackgroundService
 
     private const string ExchangeName = "railflow.events";
     private const string QueueName = "railflow.notifications";
+    private const string DLQueueName = "railflow.notifications.dlq";
 
     private CancellationToken _stoppingToken;
 
@@ -127,8 +129,18 @@ public class RabbitMqConsumer : BackgroundService
             durable: true,
             exclusive: false,
             autoDelete: false,
-            cancellationToken: cancellationToken
-            );
+            cancellationToken: cancellationToken,
+            arguments: new Dictionary<string, object?>
+            {
+                ["x-dead-letter-exchange"] = "",
+                ["x-dead-letter-routing-key"] = "railflow.notifications.dlq"
+            } );
+
+        _ = await this._channel.QueueDeclareAsync(
+            queue: DLQueueName,
+            durable: true,
+            exclusive: false,
+            autoDelete: false );
 
         await this._channel.QueueBindAsync(
             queue: QueueName,
@@ -158,14 +170,8 @@ public class RabbitMqConsumer : BackgroundService
             //First, we need to deserialize the message body into our IntegrationEventEnvelope
             string message = Encoding.UTF8.GetString(args.Body.ToArray());
 
-            IntegrationEventEnvelope? envelope = JsonSerializer.Deserialize<IntegrationEventEnvelope>( message, JsonDefaults.Options );
-
-            if ( envelope is null )
-            {
-                this._logger.LogWarning( "Invalid message format" );
-                await this._channel.BasicNackAsync( args.DeliveryTag, false, false );
-                return;
-            }
+            IntegrationEventEnvelope? envelope =  JsonSerializer.Deserialize<IntegrationEventEnvelope>( message, JsonDefaults.Options )
+                ?? throw new NonRetryableException( "Invalid message format." );
 
             //Then, we can dispatch the event to our handlers. We use a logging scope to include the CorrelationId in all logs related to this message.
             using ( this._logger.BeginCorrelationScope( envelope.CorrelationId ) )
@@ -175,6 +181,11 @@ public class RabbitMqConsumer : BackgroundService
 
             //Finally, we acknowledge the message to RabbitMQ to indicate that it has been processed successfully.
             await this._channel.BasicAckAsync( args.DeliveryTag, false );
+        }
+        catch ( NonRetryableException ex )
+        {
+            this._logger.LogError( ex, "Non-retryable error processing message. Sending to DLQ." );
+            await this._channel.BasicNackAsync( args.DeliveryTag, false, false );
         }
         catch ( Exception ex )
         {

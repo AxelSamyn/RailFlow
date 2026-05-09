@@ -1,8 +1,9 @@
-﻿using RailFlow.TrainService.Domain.Common;
+﻿using RailFlow.Contracts.Abstractions.Events;
 
 namespace RailFlow.TrainService.Application.Common.Interfaces;
 
 public interface IEventBus
 {
-    Task PublishAsync( IDomainEvent domainEvent, CancellationToken cancellationToken = default );
+    Task PublishAsync<T>( T integrationEvent, CancellationToken cancellationToken = default )
+        where T : IIntegrationEvent;
 }
