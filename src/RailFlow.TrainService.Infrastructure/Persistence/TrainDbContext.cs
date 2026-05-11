@@ -9,18 +9,31 @@ namespace RailFlow.TrainService.Infrastructure.Persistence;
 
 public class TrainDbContext : DbContext, ITrainDbContext
 {
-    private readonly IDomainEventDispatcher _dispatcher;
+    private readonly IDomainEventDispatcher? _dispatcher;
 
+    /// <summary>
+    /// Constructor used at runtime.
+    /// </summary>
     public TrainDbContext( DbContextOptions<TrainDbContext> options, IDomainEventDispatcher dispatcher )
         : base( options )
     {
         this._dispatcher = dispatcher;
     }
 
+    /// <summary>
+    /// Constructor used by EF Core design-time tooling.
+    /// </summary>
+    public TrainDbContext( DbContextOptions<TrainDbContext> options )
+        : base( options )
+    {
+    }
+
     public DbSet<Train> Trains => Set<Train>( );
 
     public override async Task<int> SaveChangesAsync( CancellationToken cancellationToken = default )
     {
+        ArgumentNullException.ThrowIfNull( this._dispatcher, nameof( this._dispatcher ) );
+
         List<EntityEntry<BaseEntity>> entities =
             ChangeTracker
                 .Entries<BaseEntity>( )

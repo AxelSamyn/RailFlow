@@ -20,6 +20,9 @@ builder.Services.AddInfrastructureServices( builder.Configuration );
 builder.Services.AddEndpointsApiExplorer( );
 builder.Services.AddSwaggerGen( );
 
+Console.WriteLine(
+    builder.Configuration.GetConnectionString( "TrainDb" ) );
+
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -161,6 +161,29 @@ public class RabbitMqConsumer : BackgroundService
             );
     }
 
+    private static IntegrationEventEnvelope DeserializeEnvelope( string message )
+    {
+        IntegrationEventEnvelope? envelope;
+
+        try
+        {
+            envelope =
+                JsonSerializer.Deserialize<IntegrationEventEnvelope>(
+                    message,
+                    JsonDefaults.Options )
+                ?? throw new NonRetryableException(
+                    "Integration event envelope deserialized to null." );
+        }
+        catch ( JsonException ex )
+        {
+            throw new NonRetryableException(
+                $"Invalid integration event envelope schema: {ex.Message}",
+                ex );
+        }
+
+        return envelope;
+    }
+
     private async Task HandleMessageAsync( object sender, BasicDeliverEventArgs args )
     {
         ArgumentNullException.ThrowIfNull( this._channel );
@@ -170,8 +193,7 @@ public class RabbitMqConsumer : BackgroundService
             //First, we need to deserialize the message body into our IntegrationEventEnvelope
             string message = Encoding.UTF8.GetString(args.Body.ToArray());
 
-            IntegrationEventEnvelope? envelope =  JsonSerializer.Deserialize<IntegrationEventEnvelope>( message, JsonDefaults.Options )
-                ?? throw new NonRetryableException( "Invalid message format." );
+            IntegrationEventEnvelope? envelope = DeserializeEnvelope(message);
 
             //Then, we can dispatch the event to our handlers. We use a logging scope to include the CorrelationId in all logs related to this message.
             using ( this._logger.BeginCorrelationScope( envelope.CorrelationId ) )
