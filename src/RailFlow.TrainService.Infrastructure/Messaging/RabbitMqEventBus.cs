@@ -1,11 +1,14 @@
 ﻿using System.Text;
 using System.Text.Json;
 
+using Microsoft.Extensions.Options;
+
 using RabbitMQ.Client;
 
 using RailFlow.Contracts.Abstractions.Events;
 using RailFlow.Contracts.Events;
 using RailFlow.TrainService.Application.Common.Interfaces;
+using RailFlow.TrainService.Infrastructure.Configuration;
 
 namespace RailFlow.TrainService.Infrastructure.Messaging;
 
@@ -13,14 +16,20 @@ internal class RabbitMqEventBus : IEventBus, IAsyncDisposable
 {
     private readonly IConnection _connection;
     private readonly IChannel _channel;
+    private readonly RabbitMqOptions _rabbitMqOptions;
 
     private const string ExchangeName = "railflow.events";
 
-    public RabbitMqEventBus( )
+    public RabbitMqEventBus( IOptions<RabbitMqOptions> rabbitMqOptions )
     {
+        this._rabbitMqOptions = rabbitMqOptions.Value;
+
         ConnectionFactory factory = new( )
         {
-            HostName = "localhost"
+            HostName = this._rabbitMqOptions.Host,
+            Port = this._rabbitMqOptions.Port,
+            UserName = this._rabbitMqOptions.User,
+            Password = this._rabbitMqOptions.Password
         };
 
         this._connection = factory.CreateConnectionAsync( ).GetAwaiter( ).GetResult( );
@@ -41,7 +50,7 @@ internal class RabbitMqEventBus : IEventBus, IAsyncDisposable
         IntegrationEventEnvelope envelope = new(
             Type: T.EventType,
             Payload: JsonSerializer.Serialize( integrationEvent ),
-            CorrelationId: Guid.NewGuid( ).ToString( ),
+            CorrelationId: Guid.NewGuid( ).ToString( ), // TODO: get from controller and pass through service layer
             OccurredAtUtc: DateTime.UtcNow
             );
 

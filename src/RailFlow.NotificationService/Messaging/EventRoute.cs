@@ -4,6 +4,7 @@ using RailFlow.Contracts.Abstractions.Events;
 using RailFlow.NotificationService.Abstractions.Handlers;
 using RailFlow.NotificationService.Abstractions.Messaging;
 using RailFlow.NotificationService.Configuration;
+using RailFlow.NotificationService.Messaging.Exceptions;
 
 namespace RailFlow.NotificationService.Messaging;
 
@@ -14,16 +15,23 @@ public sealed class EventRoute<T> : IEventRoute
 
     public async Task HandleAsync( string payload, IServiceProvider serviceProvider, CancellationToken cancellationToken )
     {
-        T? @event = JsonSerializer.Deserialize<T>( payload, JsonDefaults.Options );
+        T evt;
 
-        if ( @event is null )
-            throw new InvalidOperationException( $"Invalid payload for {typeof( T ).Name}" );
+        try
+        {
+            evt = JsonSerializer.Deserialize<T>( payload, JsonDefaults.Options )
+                ?? throw new NonRetryableException( $"Payload deserialized to null for event type '{typeof( T ).Name}'." );
+        }
+        catch ( JsonException ex )
+        {
+            throw new NonRetryableException( $"Invalid payload for event type '{typeof( T ).Name}'.", ex );
+        }
 
-        IEnumerable<IIntegrationEventHandler<T>> handlers = serviceProvider.GetServices<IIntegrationEventHandler<T>>( );
+        IEnumerable<IIntegrationEventHandler<T>> handlers = serviceProvider.GetServices<IIntegrationEventHandler<T>>();
 
         foreach ( IIntegrationEventHandler<T> handler in handlers )
         {
-            await handler.HandleAsync( @event, cancellationToken );
+            await handler.HandleAsync( evt, cancellationToken );
         }
     }
 
