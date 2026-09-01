@@ -17,10 +17,11 @@ internal class RabbitMqEventBus : IEventBus, IAsyncDisposable
     private readonly IConnection _connection;
     private readonly IChannel _channel;
     private readonly RabbitMqOptions _rabbitMqOptions;
+    private readonly ICorrelationContext _correlationContext;
 
     private const string ExchangeName = "railflow.events";
 
-    public RabbitMqEventBus( IOptions<RabbitMqOptions> rabbitMqOptions )
+    public RabbitMqEventBus( IOptions<RabbitMqOptions> rabbitMqOptions, ICorrelationContext correlationContext )
     {
         this._rabbitMqOptions = rabbitMqOptions.Value;
 
@@ -34,6 +35,7 @@ internal class RabbitMqEventBus : IEventBus, IAsyncDisposable
 
         this._connection = factory.CreateConnectionAsync( ).GetAwaiter( ).GetResult( );
         this._channel = this._connection.CreateChannelAsync( ).GetAwaiter( ).GetResult( );
+        this._correlationContext = correlationContext;
     }
 
     public async Task PublishAsync<T>( T integrationEvent, CancellationToken cancellationToken )
@@ -50,7 +52,7 @@ internal class RabbitMqEventBus : IEventBus, IAsyncDisposable
         IntegrationEventEnvelope envelope = new(
             Type: T.EventType,
             Payload: JsonSerializer.Serialize( integrationEvent ),
-            CorrelationId: Guid.NewGuid( ).ToString( ), // TODO: get from controller and pass through service layer
+            CorrelationId: this._correlationContext.CorrelationId ?? Guid.NewGuid( ).ToString( "D" ),
             OccurredAtUtc: DateTime.UtcNow
             );
 

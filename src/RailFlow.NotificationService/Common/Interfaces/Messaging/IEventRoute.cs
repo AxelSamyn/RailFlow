@@ -1,4 +1,4 @@
-﻿namespace RailFlow.NotificationService.Abstractions.Messaging;
+﻿namespace RailFlow.NotificationService.Common.Interfaces.Messaging;
 
 public interface IEventRoute
 {

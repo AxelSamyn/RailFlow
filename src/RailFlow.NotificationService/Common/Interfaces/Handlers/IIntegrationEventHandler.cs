@@ -1,4 +1,4 @@
-﻿namespace RailFlow.NotificationService.Abstractions.Handlers;
+﻿namespace RailFlow.NotificationService.Common.Interfaces.Handlers;
 
 public interface IIntegrationEventHandler<in TEvent>
 {

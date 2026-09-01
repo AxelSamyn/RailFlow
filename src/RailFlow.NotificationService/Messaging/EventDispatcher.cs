@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 
 using RailFlow.Contracts.Events;
-using RailFlow.NotificationService.Abstractions.Messaging;
+using RailFlow.NotificationService.Common.Interfaces.Messaging;
 using RailFlow.NotificationService.Messaging.Exceptions;
 
 namespace RailFlow.NotificationService.Messaging;

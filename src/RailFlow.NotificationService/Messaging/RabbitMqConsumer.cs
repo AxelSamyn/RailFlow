@@ -7,8 +7,8 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 using RailFlow.Contracts.Events;
-using RailFlow.NotificationService.Abstractions.Messaging;
-using RailFlow.NotificationService.Common.Logging;
+using RailFlow.NotificationService.Common.Interfaces.Correlation;
+using RailFlow.NotificationService.Common.Interfaces.Messaging;
 using RailFlow.NotificationService.Configuration;
 using RailFlow.NotificationService.Messaging.Exceptions;
 
@@ -20,6 +20,7 @@ public class RabbitMqConsumer : BackgroundService
     private readonly ILogger<RabbitMqConsumer> _logger;
     private readonly ConnectionFactory _connectionFactory;
     private readonly IEventDispatcher _dispatcher;
+    private readonly ICorrelationContextAccessor _correlationContextAccessor;
 
     private IConnection? _connection;
     private IChannel? _channel;
@@ -30,11 +31,12 @@ public class RabbitMqConsumer : BackgroundService
 
     private CancellationToken _stoppingToken;
 
-    public RabbitMqConsumer( IOptions<RabbitMqOptions> options, ILogger<RabbitMqConsumer> logger, IEventDispatcher dispatcher )
+    public RabbitMqConsumer( IOptions<RabbitMqOptions> options, ILogger<RabbitMqConsumer> logger, IEventDispatcher dispatcher, ICorrelationContextAccessor correlationContextAccessor )
     {
         this._rabbitMqOptions = options.Value;
         this._logger = logger;
         this._dispatcher = dispatcher;
+        this._correlationContextAccessor = correlationContextAccessor;
 
         this._connectionFactory = new ConnectionFactory
         {
@@ -43,6 +45,7 @@ public class RabbitMqConsumer : BackgroundService
             UserName = this._rabbitMqOptions.User,
             Password = this._rabbitMqOptions.Password
         };
+        this._correlationContextAccessor = correlationContextAccessor;
     }
 
     protected override async Task ExecuteAsync( CancellationToken cancellationToken )
@@ -195,8 +198,11 @@ public class RabbitMqConsumer : BackgroundService
 
             IntegrationEventEnvelope? envelope = DeserializeEnvelope(message);
 
+            // Populate the correlation context for the current async flow.
+            this._correlationContextAccessor.SetCorrelationId( envelope.CorrelationId );
+
             //Then, we can dispatch the event to our handlers. We use a logging scope to include the CorrelationId in all logs related to this message.
-            using ( this._logger.BeginCorrelationScope( envelope.CorrelationId ) )
+            using ( this._logger.BeginScope( new Dictionary<string, object?> { ["CorrelationId"] = envelope.CorrelationId } ) )
             {
                 await this._dispatcher.DispatchAsync( envelope, this._stoppingToken );
             }
@@ -214,6 +220,10 @@ public class RabbitMqConsumer : BackgroundService
             this._logger.LogError( ex, "Error processing message" );
 
             await this._channel.BasicNackAsync( args.DeliveryTag, false, true );
+        }
+        finally
+        {
+            this._correlationContextAccessor.Clear( );
         }
     }
 

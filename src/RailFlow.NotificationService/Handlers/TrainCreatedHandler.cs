@@ -1,5 +1,5 @@
 ﻿using RailFlow.Contracts.Events;
-using RailFlow.NotificationService.Abstractions.Handlers;
+using RailFlow.NotificationService.Common.Interfaces.Handlers;
 
 namespace RailFlow.NotificationService.Handlers;
 

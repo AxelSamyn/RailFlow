@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using RailFlow.TrainService.Application.Common.Interfaces;
 using RailFlow.TrainService.Domain.Trains;
 using RailFlow.TrainService.Infrastructure.Configuration;
+using RailFlow.TrainService.Infrastructure.Correlation;
 using RailFlow.TrainService.Infrastructure.Messaging;
 using RailFlow.TrainService.Infrastructure.Persistence;
 using RailFlow.TrainService.Infrastructure.Persistence.Repositories;
@@ -27,6 +28,10 @@ public static class InfrastructureServices
 
         _ = services.AddDbContext<TrainDbContext>( options =>
             options.UseSqlServer( config.GetConnectionString( "TrainDb" ) ) );
+
+        _ = services.AddSingleton<AsyncLocalCorrelationContext>( );
+        _ = services.AddSingleton<ICorrelationContext>( provider => provider.GetRequiredService<AsyncLocalCorrelationContext>( ) );
+        _ = services.AddSingleton<ICorrelationContextAccessor>( provider => provider.GetRequiredService<AsyncLocalCorrelationContext>( ) );
 
         _ = services.AddScoped<ITrainDbContext>( provider => provider.GetRequiredService<TrainDbContext>( ) );
         _ = services.AddScoped<ITrainRepository, TrainRepository>( );

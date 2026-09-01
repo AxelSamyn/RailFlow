@@ -1,6 +1,9 @@
 using MediatR;
 
+using RailFlow.TrainService.Api.Middleware;
+using RailFlow.TrainService.Api.Services;
 using RailFlow.TrainService.Application;
+using RailFlow.TrainService.Application.Common.Interfaces;
 using RailFlow.TrainService.Application.Features.Trains.CreateTrain;
 using RailFlow.TrainService.Application.Features.Trains.GetTrainById;
 using RailFlow.TrainService.Infrastructure;
@@ -11,6 +14,9 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders( );
 builder.Logging.AddConsole( );
 
+builder.Services.AddHttpContextAccessor( );
+builder.Services.AddScoped<ICorrelationContext, CorrelationContext>( );
+
 builder.Services.AddControllers( );
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi( );
@@ -19,9 +25,6 @@ builder.Services.AddApplicationServices( );
 builder.Services.AddInfrastructureServices( builder.Configuration );
 builder.Services.AddEndpointsApiExplorer( );
 builder.Services.AddSwaggerGen( );
-
-Console.WriteLine(
-    builder.Configuration.GetConnectionString( "TrainDb" ) );
 
 WebApplication app = builder.Build();
 
@@ -32,6 +35,8 @@ if ( app.Environment.IsDevelopment( ) )
 }
 
 app.UseHttpsRedirection( );
+
+app.UseMiddleware<CorrelationIdMiddleware>( );
 
 app.UseAuthorization( );
 

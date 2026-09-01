@@ -6,7 +6,7 @@ namespace RailFlow.TrainService.Domain.Trains;
 public sealed class Train : BaseEntity
 {
     public Guid Id { get; private set; }
-    public string Number { get; private set; }
+    public string Number { get; private set; } = string.Empty;
 
     private Train( ) { }
 
